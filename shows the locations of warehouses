@@ -1,0 +1,4 @@
+<apex:page standardcontroller="Warehouse__c">
+ This map shows the locations of warehouses from the sample data file <b>{!Warehouse__c.Name}</b> position.
+CandidateMapSample.scf
+</apex:page>
