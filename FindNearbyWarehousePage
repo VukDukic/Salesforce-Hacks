@@ -1,0 +1,140 @@
+<apex:page sidebar="false" showheader="false" standardController="Warehouse__c"
+recordSetVar="warehouses" extensions="FindNearby">
+<!-- Include in Google's Maps API via Javascript static resources -->
+    <apex:includeScript value="{!$Resource.googleMapsAPI}" />
+    
+    <!-- Set this API key to fix Javascript errors in production -->
+    
+<!-- http://salesforcesolutions.blogspot.com/2013/01/integration-of-salesforcecom-and-google.html -->
+
+    <!-- <script type="text/javascript"
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&sensor=false">
+        </script>-->
+        
+<!-- Setup the map to take up the whole window -->
+    <style>
+        html, body { height: 100%; }
+        .page-map, .ui-content, #map-canvas { width: 100%; height: 100%; padding: 0; }
+        #map-canvas { height: min-height: 100%; }
+    </style>
+<script>
+    function initialize()  {
+      var lat, lon:
+      
+      // Get the position of the user via device geolocation
+      if (navigator.geolocation)  {
+          navigator.geolocation.getCurrentPosition(function(position) {
+              lat = position.coords.latitude;
+              lon = position.coords.longitude;
+              
+      // Use Visualforce javascript Remoting to query for nearby warehouses
+      Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.FindNearby.getNearby}',
+      lat, lon,
+          function(result, event) {
+              console.log(result);
+              createMap(lat, lon, result);
+          } else if (event.type === 'exception')  {
+          // exception case code
+          } else {
+          
+          }
+          },
+          {escape: true}
+          );
+          });
+          } else {
+          // Set default values for map if the device doesnt have geo
+          /** San Francisco **/
+          lat = 37.77493;
+          lon = -122.419416;
+          
+          var result = [];
+          createMap(lat, lon, result);
+          }
+          }
+function createMap(lat, lon, warehouses) {
+        // Get the map div, and center the map at the proper geolocation
+        var currentPosition = new google.maps.LatLng(lat,lon);
+        var mapDiv = document.getElementById('map-canvas');
+        var map = new google.maps.Map(mapDiv, {
+            center: currentPosition,
+            zoom: 13,
+            mapTypedId: google.MapTypeId.ROADMAP
+        });
+        // Set a marker for the current location
+        var positionMaker = new google.maps.Marker({
+            map: map,
+            position: currentPosition,
+            icon: 'http://maps.google.com/mapfiles/ms/micons/green.png'
+        });
+
+        // Keep track of the map boundary that holds all markers
+        var mapBoundary = new google.maps.LatLngBounds();
+        mapBoundary.extend(currentPosition);
+        
+        // Set markers on the map from the @RemoteAction results
+        var warehouse;
+        for(var i=0; i<warehouse.lengh;i++) {
+            warehouse = warehouses[i];
+            console.log(warehouses[i]);
+            setupMarker();
+        }
+        
+        // Resize map to neatly fit all of the markers
+        map.fitBounds(mapBoundary); 
+        
+
+       
+function setupMarker() {
+        var warehouseNavUrl;
+        
+        // Determine if we are in Salesforce1 and set navigation link appropriately
+        
+        try{
+            if(sforce.one) {
+                warehouseNavUrl =
+                    'javascript:sforce.one.navigateToSObject(\'' + warehouse.Id
++ '\')';
+            }
+        } catch(err) {
+            console.log(err);
+            warehouseNavUrl = '\\' + warehouse.Id;
+        }
+        
+        var warehouseDetails =
+            '<a href="' + warehouseNavUrl + '">' +
+            warehouse.Name + '</a><br/>' +
+            warehouse.Street_Address__c + '<br/>' +
+            warehouse.City__c + '<br/>' +
+            warehouse.Phone__c;
+            
+        // Create the callout that will pop up on the marker
+        var infowindow = new google.maps.InfoWindow({
+            content: warehouseDetails
+        });
+        
+        // Place the marker on the map
+        var marker = new google.maps.Marker({
+            map: map,
+            position: new google.maps.LatLng(
+                            warehouse.Location__Latitude__s,
+                            warehouse.Location__Longitude__s)
+        });
+        mapBoundary.extend(marker.getPosition());
+        
+        // Add the action to open up the panel when it's marker is clicked
+        
+        google.maps.events.addListener(marker, 'click', function() {
+            infowindow.open(map, marker);
+        }
+        
+// Fire the initialize function when the window loads
+    google.maps.event.addDomListener(window, 'load', initialize);
+            
+</script>            
+<!-- All content is rendered by the Google Maps code -->
+ <!-- This minimal HTML just provides a target for GMaps to write to -->
+ <body style="font-family: Arial; border: 0 none;">
+  <div id="map-canvas"></div>
+  </body>
+</apex:page>
