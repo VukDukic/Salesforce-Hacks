@@ -1,0 +1,26 @@
+<aura:component controller="bklightning.FeedItemController" implements="force:appHostable">
+     
+    <ltng:require styles="/resource/whatsappfiles/whatsappfiles/bootstrap,
+                /resource/whatsappfiles/whatsappfiles/whatsappbutton.css"
+                  scripts="/resource/whatsappfiles/whatsappfiles/jquerymin.js" 
+                  afterScriptsLoaded="{!c.afterLoaded}"></ltng:require>
+     
+    <aura:attribute name="feeds" type="FeedItem[]" />
+     
+    <div class="page-header page-header-anchor">
+        <h1>Share Your Feeds</h1>
+    </div>
+    <div id="msg" style="display:none;color:red">
+        Please share this article in mobile device
+    </div>   
+    <aura:iteration items="{!v.feeds}" var="feed">
+        <div class="card">
+            <div class="card-heading">
+                {!feed.Body}
+            </div>
+            <div class="card-detail">
+                <a data-text="{!feed.Body}" class="whatsapp w3_whatsapp_btn w3_whatsapp_btn_large">Share</a>
+            </div>
+        </div>
+    </aura:iteration>
+</aura:component>
