@@ -1,0 +1,6 @@
+public class FeedItemController{
+    @AuraEnabled
+    public static List&lt;FeedItem&gt; getFeedItems(){
+        return [SELECT Body FROM FeedItem WHERE InsertedById =: UserInfo.getUserId() ORDER BY CreatedDate DESC LIMIT 10 ];
+    }
+}
